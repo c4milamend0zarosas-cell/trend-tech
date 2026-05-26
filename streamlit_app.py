@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title("Planificador Predictivo de Eco-Eficiencia")
+st.title("Simulador Predictivo de Eco-Eficiencia")
 st.write("Calcula los volumenes de agua exactos para tu lote basandote en tu meta de produccion.")
 st.divider()
 
