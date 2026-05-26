@@ -1,15 +1,15 @@
 import streamlit as st
 
 st.title("Simulador Predictivo de Eco-Eficiencia")
-st.write("Calcula los volumenes de agua exactos para tu lote basandote en tu meta de produccion.")
+st.write("Calcula los volúmenes de agua exactos para tu lote basándote en tu meta de producción.")
 st.divider()
 
 # ENTRADA PRINCIPAL GLOBAL
-st.sidebar.header("Meta de Produccion")
+st.sidebar.header("Meta de Producción")
 cerveza_deseada = st.sidebar.number_input("Litros de cerveza terminada que deseas obtener (L):", value=50.0, step=5.0)
 
 # Pestañas del proceso (Sin emojis)
-tab1, tab2, tab3 = st.tabs(["Planificacion Global", "Maceracion", "Ebullicion y Enfriamiento"])
+tab1, tab2, tab3 = st.tabs(["Planificacion Global", "Maceración", "Ebullición y Enfriamiento"])
 
 # VARIABLES FIJAS DE INGENIERIA (Configuradas para Bogota)
 # Rendimiento promedio: 1 kg de grano por cada 5 litros de cerveza de densidad estándar
@@ -28,19 +28,19 @@ agua_total_proceso = agua_macerado_teorica + agua_lavado_teorica
 
 with tab1:
     st.header("Resumen del Balance de Agua Requerido")
-    st.write(f"Para obtener **{cerveza_deseada:.1f} Litros** de cerveza final en Bogota, la planta debe ingresar un total de:")
+    st.write(f"Para obtener **{cerveza_deseada:.1f} Litros** de cerveza final en Bogotá, la planta debe ingresar un total de:")
     
     st.metric(label="AGUA TOTAL DE PROCESO REQUERIDA", value=f"{agua_total_proceso:.1f} Litros")
     
     st.write("---")
-    st.subheader("Distribucion de Agua por Etapas")
+    st.subheader("Distribución de Agua por Etapas")
     col_l1, col_l2 = st.columns(2)
     with col_l1:
-        st.metric(label="1. Agua para Maceracion", value=f"{agua_macerado_teorica:.1f} L")
+        st.metric(label="1. Agua para Maceración", value=f"{agua_macerado_teorica:.1f} L")
     with col_l2:
         st.metric(label="2. Agua para Lavado de Grano", value=f"{agua_lavado_teorica:.1f} L")
         
-    st.caption("Nota: Este calculo previene de forma exacta que te quedes corto de volumen al final de la jornada o que hiervas agua de mas consumiendo gas innecesario.")
+    st.caption("Nota: Este calculo previene de forma exacta que te quedes corto de volumen al final de la jornada o que hiervas agua de más consumiendo gas innecesario.")
 
 with tab2:
     st.header("Instrucciones para la Maceracion")
@@ -67,7 +67,7 @@ with tab3:
     agua_enfriamiento_necesaria = vol_necesario_antes_enfriar * 3.0
     st.write(f"Para enfriar este lote, circularan **{agua_enfriamiento_necesaria:.1f} Litros** de agua limpia por tu intercambiador.")
     
-    st.info("Estrategia: Almacena esa agua caliente en un tanque de reserva. No requiere tratamiento y servira para el lavado de tu planta el dia de manana. Esto reduce el indicador global de consumo de la fabrica de 8:1 a un eficiente 4:1.")
+    st.info("Estrategia: Almacena esa agua caliente en un tanque de reserva. No requiere tratamiento y servira para el lavado de tu planta el día de manana. Esto reduce el indicador global de consumo de la fabrica de 8:1 a un eficiente 4:1.")
     
     # Modelo de Ahorro Financiero por candela optimizada
     ahorro_gas_m3 = 0.4 * (tiempo_hervor_est)
