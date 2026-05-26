@@ -1,108 +1,73 @@
 import streamlit as st
 
-st.title("Eco-Brew Bogota")
-st.subheader("Asistente de Eco-Eficiencia para Cerveceria Manual")
-st.write("Optimiza agua y gas en tus ollas tradicionales a 2.600 msnm.")
+st.title("Planificador Predictivo de Eco-Eficiencia")
+st.write("Calcula los volumenes de agua exactos para tu lote basandote en tu meta de produccion.")
 st.divider()
 
+# ENTRADA PRINCIPAL GLOBAL
+st.sidebar.header("Meta de Produccion")
+cerveza_deseada = st.sidebar.number_input("Litros de cerveza terminada que deseas obtener (L):", value=50.0, step=5.0)
+
 # Pestañas del proceso (Sin emojis)
-tab1, tab2, tab3 = st.tabs(["Maceracion", "Ebullicion", "Enfriamiento"])
+tab1, tab2, tab3 = st.tabs(["Planificacion Global", "Maceracion", "Ebullicion y Enfriamiento"])
+
+# VARIABLES FIJAS DE INGENIERIA (Configuradas para Bogota)
+# Rendimiento promedio: 1 kg de grano por cada 5 litros de cerveza de densidad estándar
+grano_estimado_kg = cerveza_deseada / 5.0 
+absorcion_grano_l_per_kg = 1.0 # El grano retiene 1L de agua por cada kg
+tasa_evaporacion_bogota = 0.09 # 9% por hora debido a la altitud
+tiempo_hervor_estandar = 60.0 # minutos
+perdida_enfriamiento_trub = 1.02 # 2% de contraccion y retencion de lodos
+
+# CALCULOS DE BALANCES INVERSOS
+vol_necesario_antes_enfriar = cerveza_deseada * perdida_enfriamiento_trub
+vol_necesario_antes_hervir = vol_necesario_antes_enfriar / (1.0 - (tasa_evaporacion_bogota * (tiempo_hervor_estandar / 60.0)))
+agua_macerado_teorica = grano_estimado_kg * 3.0 # Relacion comun 3L agua / 1kg malta
+agua_lavado_teorica = vol_necesario_antes_hervir - (agua_macerado_teorica - (grano_estimado_kg * absorcion_grano_l_per_kg))
+agua_total_proceso = agua_macerado_teorica + agua_lavado_teorica
 
 with tab1:
-    st.header("Optimizacion del Macerado")
-    tipo_olla = st.selectbox("Material de tu olla:", ["Acero Inoxidable", "Aluminio", "Cava plastica"])
+    st.header("Resumen del Balance de Agua Requerido")
+    st.write(f"Para obtener **{cerveza_deseada:.1f} Litros** de cerveza final en Bogota, la planta debe ingresar un total de:")
     
-    if tipo_olla == "Cava plastica":
-        st.success("Excelente aislamiento. No necesitas encender el fuego durante los 60 minutos.")
-    else:
-        st.warning("La olla pierde calor rapidamente por el clima de Bogota. Aplica pulsos termicos: enciende la candela al nivel minimo solo 1 minuto cada 15 minutos. No dejes el fuego encendido continuo.")
+    st.metric(label="AGUA TOTAL DE PROCESO REQUERIDA", value=f"{agua_total_proceso:.1f} Litros")
+    
+    st.write("---")
+    st.subheader("Distribucion de Agua por Etapas")
+    col_l1, col_l2 = st.columns(2)
+    with col_l1:
+        st.metric(label="1. Agua para Maceracion", value=f"{agua_macerado_teorica:.1f} L")
+    with col_l2:
+        st.metric(label="2. Agua para Lavado de Grano", value=f"{agua_lavado_teorica:.1f} L")
+        
+    st.caption("Nota: Este calculo previene de forma exacta que te quedes corto de volumen al final de la jornada o que hiervas agua de mas consumiendo gas innecesario.")
 
 with tab2:
-    st.header("Control de Evaporacion, Candela y Gas")
+    st.header("Instrucciones para la Maceracion")
+    st.write(f"1. Mide exactamente **{agua_macerado_teorica:.1f} Litros** de agua e ingresalos a tu olla de macerado.")
+    st.write(f"2. Agrega los **{grano_estimado_kg:.1f} kg** de malta molida cuando el agua este a la temperatura objetivo.")
     
-    # Inputs operativos
-    vol_inicial = st.number_input("Litros de mosto antes de hervir (L):", value=100.0, step=10.0)
-    tiempo_hervor = st.number_input("Minutos totales de hervor de la receta:", value=60.0, step=5.0)
-    vol_final_real = st.number_input("Litros reales que quedaron al apagar el fuego (L):", value=85.0, step=5.0)
-    
-    # PARAMETROS DE INGENIERIA (Bogota)
-    temp_ebullicion = 92.7
-    tasa_evaporacion_ideal = 0.09 # 9% por hora
-    costo_gas_por_m3 = 2700.0 # Valor promedio comercial en COP
-    
-    # CALCULOS DEL BALANCE DE MASA (AGUA)
-    evaporacion_ideal_L = vol_inicial * tasa_evaporacion_ideal * (tiempo_hervor / 60.0)
-    vol_final_teorico = vol_inicial - evaporacion_ideal_L
-    
-    st.info(f"Parametro Local: En Bogota tu mosto hierve a {temp_ebullicion} grados Celsius. No busques llegar a 100 grados Celsius.")
-    
-    st.write("---")
-    st.subheader("Instrucciones de Tiempo y Nivel de Candela")
-    
-    st.write(f"1. **Etapa de Calentamiento:** Enciende la candela al **Nivel Maximo (100% de potencia)** hasta que el termometro marque {temp_ebullicion} grados Celsius.")
-    st.write(f"2. **Etapa de Hervor Sostenido:** Apenas empiece la ebullicion, reduce de inmediato la candela al **Nivel Medio-Bajo (40% de potencia)** y mantenlo asi de forma fija durante los {tiempo_hervor:.0f} minutos del proceso. Esto es suficiente para mantener el hervor burbujeante sin sobre-evaporar.")
-    
-    st.write("---")
-    st.subheader("Resultados del Balance Hidrico en Ebullicion")
-    
-    # Evaluacion del agua evaporada
-    evaporacion_real = vol_inicial - vol_final_real
-    
-    if vol_final_real < vol_final_teorico:
-        agua_desperdiciada = vol_final_teorico - vol_final_real
-        st.error(f"Alerta de Desperdicio: Evaporaste {evaporacion_real:.1f} L. Lo ideal para la receta eran solo {evaporacion_ideal_L:.1f} L.")
-        st.metric(label="Agua perdida en exceso (Vaporizado de mas)", value=f"{agua_desperdiciada:.1f} Litros")
+    tipo_olla = st.selectbox("Material de tu olla de macerado:", ["Acero Inoxidable", "Aluminio", "Cava plastica"])
+    if tipo_olla == "Cava plastica":
+        st.success("Excelente aislamiento. Tapa la olla y no enciendas el fuego durante los 60 minutos.")
     else:
-        st.success("Control de evaporacion eficiente. Mantuviste los balances de agua dentro del rango ideal.")
-        agua_desperdiciada = 0.0
-        st.metric(label="Agua perdida en exceso", value="0.0 Litros")
-        
-    st.write("---")
-    st.subheader("Estimacion de Ahorro Economico (Gas Natural)")
-    
-    # SIMULACION DE AHORRO DE ENERGIA (GAS VANTI)
-    # Traducimos el exceso de agua evaporada a energia (Calor latente de vaporizacion = 2257 kJ/kg)
-    # Asumiendo eficiencia del quemador artesanal del 40%, calculamos el ahorro de m3 de gas
-    energia_exceso_kj = agua_desperdiciada * 2257.0
-    m3_gas_desperdiciado = (energia_exceso_kj / 37000.0) / 0.40 # 37000 kJ es el poder calorifico del m3 de gas
-    
-    # Ahorro por reduccion de potencia de candela base fija (Ahorro estimado de 0.4 m3 por hora en modo eficiente)
-    ahorro_base_m3 = 0.4 * (tiempo_hervor / 60.0)
-    
-    if agua_desperdiciada > 0:
-        total_m3_ahorrado = ahorro_base_m3 + m3_gas_desperdiciado
-    else:
-        total_m3_ahorrado = ahorro_base_m3
-        
-    ahorro_cop = total_m3_ahorrado * costo_gas_por_m3
-    
-    col_eco1, col_eco2 = st.columns(2)
-    with col_eco1:
-        st.metric(label="Gas Natural Ahorrado", value=f"{total_m3_ahorrado:.2f} m3")
-    with col_eco2:
-        st.metric(label="Ahorro Economico Estimado", value=f"$ {ahorro_cop:,.0f} COP", delta="Reduccion de costos")
-        
-    st.caption("Nota: El ahorro economico aumenta proporcionalmente segun el tamano de tu lote y los excesos de llama alta controlados.")
+        st.warning("Control manual de temperatura: No dejes la llama encendida. Aplica pulsos termicos de candela al nivel minimo durante solo 1 minuto cada 15 minutos.")
 
 with tab3:
-    st.header("Recuperacion del Agua y Sostenibilidad Global")
+    st.header("Instrucciones de Ebullicion y Enfriamiento")
     
-    # Relacion estandar de enfriamiento manual
-    agua_enfriamiento = vol_final_real * 3.0
-    
-    st.subheader("Balance de Enfriamiento")
-    st.metric(label="Agua caliente limpia recuperable", value=f"{agua_enfriamiento:.1f} Litros")
+    st.subheader("Etapa de Ebullicion")
+    st.write(f"1. Al finalizar el filtrado, debes tener en tu olla exactamente **{vol_necesario_antes_hervir:.1f} Litros** de mosto antes de encender el quemador.")
+    st.write("2. **Nivel de Candela - Calentamiento:** Enciende el fogon al **Nivel Maximo (100% de potencia)** hasta alcanzar los 92.7 grados Celsius (Punto de ebullicion en Bogota).")
+    st.write(f"3. **Nivel de Candela - Hervor Sostenido:** Apenas empiece a hervir, disminuye de inmediato la potencia de la candela al **Nivel Medio-Bajo (40% de potencia)** y sostenlo estrictamente durante **{tiempo_hervor_estandar:.0f} minutos**.")
+    st.write(f"4. Al apagar el fuego, tu volumen final en la olla debe ser de **{vol_necesario_antes_enfriar:.1f} Litros** (se habran evaporado {vol_necesario_antes_hervir - vol_necesario_antes_enfriar:.1f} L de agua de forma controlada).")
     
     st.write("---")
-    st.subheader("Indicador Ambiental del Negocio (Agua : Cerveza)")
+    st.subheader("Etapa de Enfriamiento y Sostenibilidad")
+    agua_enfriamiento_necesaria = vol_necesario_antes_enfriar * 3.0
+    st.write(f"Para enfriar este lote, circularan **{agua_enfriamiento_necesaria:.1f} Litros** de agua limpia por tu intercambiador.")
     
-    indicador_tradicional = (vol_inicial + agua_enfriamiento) / vol_final_real
-    indicador_eco_brew = vol_inicial / vol_final_real
+    st.info("Estrategia Eco-Brew: Almacena esa agua caliente en un tanque de reserva. No requiere tratamiento y servira para el lavado de tu planta el dia de manana. Esto reduce el indicador global de consumo de la fabrica de 8:1 a un eficiente 4:1.")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric(label="Indicador Tradicional (Botando agua)", value=f"{indicador_tradicional:.1f} : 1", delta="Alto consumo", delta_color="inverse")
-    with col2:
-        st.metric(label="Indicador Eco-Brew (Reusando agua)", value=f"{indicador_eco_brew:.1f} : 1", delta="Eficiencia Optima")
-        
-    st.info("Argumento de sustentacion: Al recuperar los litros del agua de enfriamiento para las tareas de aseo del dia siguiente, el indicador global disminuye a la mitad, reduciendo drasticamente la huella hidrica de la planta.")
+    # Modelo de Ahorro Financiero por candela optimizada
+    ahorro_gas_m3 = 0.4 * (tiempo_hervor_est
