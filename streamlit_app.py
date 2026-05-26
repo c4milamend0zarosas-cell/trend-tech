@@ -67,7 +67,7 @@ with tab3:
     agua_enfriamiento_necesaria = vol_necesario_antes_enfriar * 3.0
     st.write(f"Para enfriar este lote, circularan **{agua_enfriamiento_necesaria:.1f} Litros** de agua limpia por tu intercambiador.")
     
-    st.info("Estrategia Eco-Brew: Almacena esa agua caliente en un tanque de reserva. No requiere tratamiento y servira para el lavado de tu planta el dia de manana. Esto reduce el indicador global de consumo de la fabrica de 8:1 a un eficiente 4:1.")
+    st.info("Estrategia: Almacena esa agua caliente en un tanque de reserva. No requiere tratamiento y servira para el lavado de tu planta el dia de manana. Esto reduce el indicador global de consumo de la fabrica de 8:1 a un eficiente 4:1.")
     
     # Modelo de Ahorro Financiero por candela optimizada
-    ahorro_gas_m3 = 0.4 * (tiempo_hervor_est
+    ahorro_gas_m3 = 0.4 * (tiempo_hervor_est)
