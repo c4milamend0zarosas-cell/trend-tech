@@ -5,7 +5,7 @@ st.subheader("Asistente Digital para Cervecería Artesanal")
 st.write("Optimiza el gasto de agua y gas en tus ollas tradicionales teniendo en cuenta el clima de Bogotá.")
 st.divider()
 
-# PANEL IZQUIERDO: CONFIGURACIÓN SIMPLE DEL LOTE
+# --- PANEL IZQUIERDO: CONFIGURACIÓN Y SENSOR DE TEMPERATURA ---
 st.sidebar.header("1. Metas de tu receta")
 cerveza_deseada = st.sidebar.number_input("Litros de cerveza finales que quieres embotellar (L):", value=50.0, step=5.0)
 tiempo_hervor = st.sidebar.number_input("Minutos totales que debe hervir el mosto (min):", value=60.0, step=5.0)
@@ -15,13 +15,19 @@ relacion_macerado = st.sidebar.number_input("¿Cuántos litros de agua usas por 
 grano_por_litro = st.sidebar.number_input("¿Cuántos kilos de grano usas por cada litro de cerveza? (kg/L):", value=0.2, step=0.05)
 relacion_enfriamiento = st.sidebar.number_input("¿Cuántos litros de agua gastas para enfriar un solo litro de mosto caliente?:", value=3.0, step=0.5)
 
-# CONFIGURACIONES INTERNAS (Precios y física de Bogotá)
+st.sidebar.header("3. Monitor del Sensor (En Vivo)")
+# Regresa el simulador del sensor que se había borrado
+temperatura_sensor = st.sidebar.slider("Temperatura actual en la olla física (°C):", min_value=15.0, max_value=100.0, value=40.0, step=0.5)
+
+
+# --- VALORES DE REFERENCIA (Bogotá) ---
 tasa_evaporacion_bogota = 0.09
 temp_ebullicion = 92.7
 costo_gas_m3 = 2700.0
 costo_agua_litro = 6.5
 
-# CÁLCULOS DEL BALANCE DE AGUA (Hacia atrás)
+
+# --- CÁLCULOS INTERNOS DE BALANCES ---
 grano_total_kg = cerveza_deseada * grano_por_litro
 absorcion_grano_l = grano_total_kg * 1.0
 
@@ -33,15 +39,16 @@ agua_lavado_manual = vol_necesario_antes_hervir - (agua_macerado_manual - absorc
 agua_total_proceso = agua_macerado_manual + agua_lavado_manual
 agua_enfriamiento_total = vol_necesario_antes_enfriar * relacion_enfriamiento
 
-# DIVISIÓN CLARA POR ETAPAS DEL PROCESO
+
+# --- PESTAÑAS DISTRIBUIDAS POR ETAPAS DEL PROCESO ---
 tab1, tab2, tab3 = st.tabs(["1. Maceración", "2. Cocción (Hervor)", "3. Enfriamiento y Ahorro"])
 
 with tab1:
     st.header("Etapa de Maceración")
     
-    # Imagen de los granos/malta
-    st.image("https://cdn.pixabay.com/photo/2016/11/19/13/53/barley-1839404_1280.jpg", 
-             caption="Preparación de granos y agua inicial", width=400)
+    # Imagen de granos/malta usando un servidor de código abierto estable
+    st.image("https://images.unsplash.com/photo-1566633806327-68e152aaf26d?w=500", 
+             caption="Preparación de los granos de malta para el proceso", use_container_width=True)
     
     with st.container(border=True):
         st.subheader("Agua requerida para esta etapa:")
@@ -56,9 +63,9 @@ with tab1:
 with tab2:
     st.header("Etapa de Cocción y Control de Fuego")
     
-    # Imagen de la olla hirviendo
-    st.image("https://cdn.pixabay.com/photo/2014/08/08/21/01/beer-413692_1280.jpg", 
-             caption="Control del fuego en la olla de hervor", width=400)
+    # Imagen de la olla de cocción / ebullición
+    st.image("https://images.unsplash.com/photo-1532635241-17e820aac095?w=500", 
+             caption="Proceso de ebullición y control de energía en la olla", use_container_width=True)
     
     with st.container(border=True):
         st.subheader("Agua requerida para esta etapa:")
@@ -66,21 +73,29 @@ with tab2:
         st.write(f"Al juntar toda el agua filtrada en la olla antes de prender el quemador, debes tener exactamente **{vol_necesario_antes_hervir:.1f} Litros** de líquido.")
 
     st.write("---")
-    st.subheader("Pauta Eco-Eficiente para ahorrar gas en Bogotá:")
+    st.subheader("Pauta del Sensor en Tiempo Real:")
     st.write(f"Por la altura de la ciudad, tu mosto nunca va a pasar de los {temp_ebullicion} grados. No gastes gas de más intentando buscar que suba a 100 grados.")
     
+    # Evaluación en vivo del sensor dentro de la pestaña de cocción
     with st.container(border=True):
-        st.write("1. **Para calentar:** Sube el fuego al **Máximo (100% de potencia)** hasta que empiece a hervir.")
-        st.write(f"2. **Al empezar a hervir:** Apenas veas las primeras burbujas (a los {temp_ebullicion} grados), baja de inmediato el fuego al **Nivel Medio-Bajo (40% de potencia)**.")
-        st.write(f"3. **Durante la cocción:** Mantén ese fuego bajito durante los {tiempo_hervor:.0f} minutos de tu receta. Es calor suficiente para mantener el hervor.")
-        st.write(f"4. **Meta al apagar:** Al apagar el quemador, deben quedarte exactamente **{vol_necesario_antes_enfriar:.1f} Litros** en la olla.")
+        st.write(f"**Temperatura detectada por el sensor:** {temperatura_sensor} °C")
+        
+        if temperatura_sensor < temp_ebullicion:
+            st.info(" **Instrucción actual:** Sube el fuego al **Máximo (100% de potencia)**.")
+            st.write(f"Faltan {temp_ebullicion - temperatura_sensor:.1f} °C para que empiece a hervir.")
+        elif temperatura_sensor == temp_ebullicion:
+            st.success(" **¡Llegaste al punto de hervor!** Baja de inmediato el fuego al **Nivel Medio-Bajo (40% de potencia)**.")
+            st.write(f"Mantén este nivel bajito durante los {tiempo_hervor:.0f} minutos. Es calor suficiente para cocinar el mosto de forma eficiente.")
+        else:
+            st.error(" **¡Alerta de Desperdicio!** Te pasaste del punto de ebullición de Bogotá.")
+            st.write(f"Estás a {temperatura_sensor} °C. El mosto no va a calentarse más, solo estás perdiendo gas y evaporando agua en exceso. ¡Baja el fuego ya!")
 
 with tab3:
     st.header("Etapa de Enfriamiento y Dinero Ahorrado")
     
-    # Imagen del uso del agua limpia
-    st.image("https://cdn.pixabay.com/photo/2020/02/03/10/02/water-4815229_1280.jpg", 
-             caption="Reúso del agua de enfriamiento", width=400)
+    # Imagen de flujo de agua limpia / enfriador
+    st.image("https://images.unsplash.com/photo-1617155093730-a8bf47be792d?w=500", 
+             caption="Recuperación del agua del intercambiador de calor", use_container_width=True)
     
     with st.container(border=True):
         st.subheader("Gasto de agua para enfriar:")
