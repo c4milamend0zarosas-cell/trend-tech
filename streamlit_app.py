@@ -26,7 +26,7 @@ with tab1:
         cerveza_deseada = st.number_input("Litros de cerveza finales que quieres embotellar (L):", value=50.0, step=5.0, key="mace_l")
         grano_por_litro = st.number_input("Kilos de grano que usas por cada litro de cerveza (kg/L):", value=0.2, step=0.05, key="mace_grano")
     with col_in2:
-        relacion_macerado = st.number_input("Litros de agua que usas por cada kilo de grano en esta etapa:", value=3.0, step=0.5, key="mace_rel")
+        relacion_macerado = st.number_input("Litros de agua que usas por cada kilo de grano:", value=3.0, step=0.5, key="mace_rel")
         tipo_olla = st.selectbox("Selecciona el material de tu olla de maceración:", ["Acero Inoxidable", "Aluminio", "Cava plástica"])
 
     # CÁLCULOS ESPECÍFICOS DE MACERACIÓN
@@ -78,7 +78,7 @@ with tab2:
     if temperatura_sensor < 92.0:
         st.info(f"🔵 **Fase: CALENTAMIENTO INICIAL** \n\n**Acción:** Sube el fuego al **Máximo (100% de potencia)**. El sistema calcula que aún faltan {temp_ebullicion - temperatura_sensor:.1f} °C para que empiece a hervir.")
     elif 92.0 <= temperatura_sensor <= 93.5:
-        st.success(f"🟢 **Fase: ¡HERVOR EFICIENTE ALCANZADO!** \n\n**Acción de Eco-Eficiencia:** ¡Baja de inmediato la llama al **Nivel Medio-Bajo (40% de potencia)**! Este nivel es suficiente para mantener las burbujas activas durante los {tiempo_hervor:.0f} minutes sin quemar gas en exceso.")
+        st.success(f"🟢 **Fase: ¡HERVOR EFICIENTE ALCANZADO!** \n\n**Acción de Eco-Eficiencia:** ¡Baja de inmediato la llama al **Nivel Medio-Bajo (40% de potencia)**! Este nivel es suficiente para mantener las burbujas activas durante los {tiempo_hervor:.0f} minutos sin quemar gas en exceso.")
     else:
         grados_exceso = temperatura_sensor - temp_ebullicion
         st.error(f"🔴 **Fase: ¡ALERTA DE DESPERDICIO CRÍTICO!** \n\n**Acción:** Te pasaste por {grados_exceso:.1f} °C del punto físico de ebullición. El mosto no se va a calentar más; estás perdiendo dinero en gas y evaporando el volumen de tu receta. **¡Baja el fuego ya!**")
