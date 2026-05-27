@@ -46,16 +46,12 @@ tab1, tab2, tab3 = st.tabs(["1. Maceración", "2. Cocción (Hervor)", "3. Enfria
 with tab1:
     st.header("Etapa de Maceración")
     
-    st.image("https://images.unsplash.com/photo-1566633806327-68e152aaf26d?w=500", 
-             caption="Preparación de los granos de malta para el proceso", use_container_width=True)
-    
     st.subheader("Agua requerida para esta etapa:")
     st.info(f"💧 **Mide exactamente e ingresa a la olla:** {agua_macerado_manual:.1f} Litros")
     st.write(f"Para esta cantidad de agua debes mezclar un total de **{grano_total_kg:.1f} kilos de grano**.")
     
     st.write("---")
     st.subheader("Configuración del Equipo:")
-    # Regresa la selección del material de la olla
     tipo_olla = st.selectbox("Selecciona el material de tu olla de maceración:", ["Acero Inoxidable", "Aluminio", "Cava plástica"])
     
     if tipo_olla == "Cava plástica":
@@ -66,9 +62,6 @@ with tab1:
 with tab2:
     st.header("Etapa de Cocción y Control de Fuego")
     
-    st.image("https://images.unsplash.com/photo-1532635241-17e820aac095?w=500", 
-             caption="Proceso de ebullición y control de energía en la olla", use_container_width=True)
-    
     st.subheader("Agua requerida para esta etapa:")
     st.info(f"💧 **Agua que debes usar para la lavada del grano:** {agua_lavado_manual:.1f} Litros")
     st.write(f"Al juntar toda el agua filtrada en la olla antes de prender el quemador, debes tener exactamente **{vol_necesario_antes_hervir:.1f} Litros** de líquido.")
@@ -77,11 +70,10 @@ with tab2:
     st.subheader("Pauta del Sensor en Tiempo Real:")
     st.write(f"Por la altura de la ciudad, tu mosto nunca va a pasar de los {temp_ebullicion} grados. Sigue la alerta de color según lo que marque tu termómetro:")
     
-    # --- CORRECCIÓN DEL SENSOR (Lógica con rangos amplios y estables) ---
     st.write(f"**Temperatura actual detectada:** {temperatura_sensor} °C")
     
     if temperatura_sensor < 92.0:
-        st.info(f"🔵 **Fase: CALENTAMIENTO INICIAL** \n**Acción:** Sube el fuego al **Máximo (100% de potencia)**. El gemelo digital estima que aún faltan {temp_ebullicion - temperatura_sensor:.1f} °C para que empiece a hervir.")
+        st.info(f"🔵 **Fase: CALENTAMIENTO INICIAL** \n**Acción:** Sube el fuego al **Máximo (100% de potencia)**. El asistente digital estima que aún faltan {temp_ebullicion - temperatura_sensor:.1f} °C para que empiece a hervir.")
     elif 92.0 <= temperatura_sensor <= 93.5:
         st.success(f"🟢 **Fase: ¡HERVOR EFICIENTE ALCANZADO!** \n**Acción de Eco-Eficiencia:** ¡Baja de inmediato el fuego al **Nivel Medio-Bajo (40% de potencia)**! Este nivel bajito es calor suficiente para cocinar el mosto de forma óptima durante los {tiempo_hervor:.0f} minutos.")
     else:
@@ -92,9 +84,6 @@ with tab2:
 
 with tab3:
     st.header("Etapa de Enfriamiento y Dinero Ahorrado")
-    
-    st.image("https://images.unsplash.com/photo-1617155093730-a8bf47be792d?w=500", 
-             caption="Recuperación del agua del intercambiador de calor", use_container_width=True)
     
     st.subheader("Gasto de agua para enfriar:")
     st.warning(f"💧 **Agua total que pasará por el enfriador:** {agua_enfriamiento_total:.1f} Litros de agua limpia.")
