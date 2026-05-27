@@ -5,11 +5,13 @@ st.subheader("Asistente Digital para Cervecería Artesanal")
 st.write("Optimiza tus recursos paso a paso en cada etapa del proceso.")
 st.divider()
 
-# --- VALORES FIJOS DE REFERENCIA (Bogotá) ---
+# --- VALORES FIJOS DE REFERENCIA (Bogotá Oficiales - Mayo 2026) ---
 tasa_evaporacion_bogota = 0.09
 temp_ebullicion = 92.7
-costo_gas_m3 = 2689.44
-costo_agua_litro = 11.70
+
+# Tarifas comerciales extraídas directamente de tus documentos oficiales:
+costo_gas_m3 = 2689.44       # Valor exacto Vanti Comercial Rango 1
+costo_agua_litro = 11.70      # Valor exacto EAAB Comercial (Acueducto + Alcantarillado)
 
 # --- PESTAÑAS DISTRIBUIDAS POR ETAPAS ---
 tab1, tab2, tab3 = st.tabs(["1. Maceración", "2. Cocción (Hervor)", "3. Enfriamiento y Ahorro"])
@@ -71,4 +73,55 @@ with tab2:
 
     # 3. ANÁLISIS ENERGÉTICO DE LA ETAPA
     st.subheader("🔥 Análisis Energético y Sensor en Vivo: Cocción")
-    st.write("Por la altura de Bogotá, tu mosto nunca va a pasar de los {temp_ebullicion} °C. Monit
+    st.write(f"Por la altura de Bogotá, tu mosto nunca va a pasar de los {temp_ebullicion} °C. Monitorea la alerta de energía según el sensor:")
+    
+    if temperatura_sensor < 92.0:
+        st.info(f"🔵 **Fase: CALENTAMIENTO INICIAL** \n\n**Acción:** Sube el fuego al **Máximo (100% de potencia)**. El sistema calcula que aún faltan {temp_ebullicion - temperatura_sensor:.1f} °C para que empiece a hervir.")
+    elif 92.0 <= temperatura_sensor <= 93.5:
+        st.success(f"🟢 **Fase: ¡HERVOR EFICIENTE ALCANZADO!** \n\n**Acción de Eco-Eficiencia:** ¡Baja de inmediato la llama al **Nivel Medio-Bajo (40% de potencia)**! Este nivel es suficiente para mantener las burbujas activas durante los {tiempo_hervor:.0f} minutes sin quemar gas en exceso.")
+    else:
+        grados_exceso = temperatura_sensor - temp_ebullicion
+        st.error(f"🔴 **Fase: ¡ALERTA DE DESPERDICIO CRÍTICO!** \n\n**Acción:** Te pasaste por {grados_exceso:.1f} °C del punto físico de ebullición. El mosto no se va a calentar más; estás perdiendo dinero en gas y evaporando el volumen de tu receta. **¡Baja el fuego ya!**")
+
+    st.write(f"**Meta al apagar el quemador:** Deben quedarte exactamente **{vol_necesario_antes_enfriar:.1f} Litros** dentro de la olla.")
+
+with tab3:
+    st.header("Etapa de Enfriamiento y Resumen de Ahorros")
+    st.write("Calcula el impacto ambiental y económico al cerrar tu jornada de trabajo.")
+    
+    # 1. PARÁMETROS DE ENTRADA PROPIOS DE ESTA ETAPA
+    relacion_enfriamiento = st.number_input("¿Cuántos litros de agua gastas para enfriar un solo litro de mosto caliente?:", value=3.0, step=0.5, key="enf_rel")
+
+    # CÁLCULOS ESPECÍFICOS DE ENFRIAMIENTO
+    agua_enfriamiento_total = vol_necesario_antes_enfriar * relacion_enfriamiento
+    botellas_ahorradas = agua_enfriamiento_total / 0.5
+    dinero_agua_ahorrado = agua_enfriamiento_total * costo_agua_litro
+    ahorro_gas_m3 = 0.4 * (tiempo_hervor / 60.0)
+    dinero_gas_ahorrado = ahorro_gas_m3 * costo_gas_m3
+    total_dinero_ahorrado = dinero_agua_ahorrado + dinero_gas_ahorrado
+    co2_ahorrado_kg = ahorro_gas_m3 * 1.95
+
+    st.write("---")
+    
+    # 2. BALANCE DE AGUA DE LA ETAPA
+    st.subheader("💧 Balance de Agua: Enfriamiento")
+    st.warning(f"**Volumen de flujo:** Pasarán un total de **{agua_enfriamiento_total:.1f} Litros** de agua limpia por tu enfriador.")
+    st.success("💡 **Estrategia de reúso hídrico:** Recupera la manguera de salida en un tanque limpio. Toda esa agua saldrá caliente y limpia, lista para usarla mañana en el lavado de pisos y ollas sin abrir la llave principal.")
+
+    # 3. ANÁLISIS ENERGÉTICO Y FINANCIERO (Resumen de Impacto)
+    st.write("---")
+    st.subheader("💰 Análisis de Sostenibilidad y Beneficios Totales")
+    
+    col_eco1, col_eco2 = st.columns(2)
+    with col_eco1:
+        with st.container(border=True):
+            st.write("**Impacto Ambiental Real:**")
+            st.write(f"- Equivalente a: **{botellas_ahorradas:,.0f} botellas de agua** de la tienda.")
+            st.write(f"- Evitaste enviar al aire de Bogotá: **{co2_ahorrado_kg:.2f} kg de humo ($CO_2$)**.")
+    with col_eco2:
+        with st.container(border=True):
+            st.write("**Dinero que dejas de pagar:**")
+            st.write(f"- Por recuperación de agua: $ {dinero_agua_ahorrado:,.0f} COP")
+            st.write(f"- Por control de llama fija: $ {dinero_gas_ahorrado:,.0f} COP")
+            st.divider()
+            st.metric(label="AHORRO TOTAL DE ESTE LOTE", value=f"$ {total_dinero_ahorrado:,.0f} COP")
