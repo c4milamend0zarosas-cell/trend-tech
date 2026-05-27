@@ -16,7 +16,7 @@ grano_por_litro = st.sidebar.number_input("¿Cuántos kilos de grano usas por ca
 relacion_enfriamiento = st.sidebar.number_input("¿Cuántos litros de agua gastas para enfriar un solo litro de mosto caliente?:", value=3.0, step=0.5)
 
 st.sidebar.header("3. Monitor del Sensor (En Vivo)")
-# Regresa el simulador del sensor que se había borrado
+# Control deslizante para interactuar frente al jurado
 temperatura_sensor = st.sidebar.slider("Temperatura actual en la olla física (°C):", min_value=15.0, max_value=100.0, value=40.0, step=0.5)
 
 
@@ -40,70 +40,68 @@ agua_total_proceso = agua_macerado_manual + agua_lavado_manual
 agua_enfriamiento_total = vol_necesario_antes_enfriar * relacion_enfriamiento
 
 
-# --- PESTAÑAS DISTRIBUIDAS POR ETAPAS DEL PROCESO ---
+# --- PESTAÑAS DISTRIBUIDAS POR ETAPAS CON BLOQUES DE COLOR ---
 tab1, tab2, tab3 = st.tabs(["1. Maceración", "2. Cocción (Hervor)", "3. Enfriamiento y Ahorro"])
 
 with tab1:
     st.header("Etapa de Maceración")
     
-    # Imagen de granos/malta usando un servidor de código abierto estable
     st.image("https://images.unsplash.com/photo-1566633806327-68e152aaf26d?w=500", 
              caption="Preparación de los granos de malta para el proceso", use_container_width=True)
     
-    with st.container(border=True):
-        st.subheader("Agua requerida para esta etapa:")
-        st.metric(label="Mide exactamente e ingresa a la olla:", value=f"{agua_macerado_manual:.1f} Litros")
-        st.write(f"Para esta cantidad de agua debes mezclar un total de **{grano_total_kg:.1f} kilos de grano**.")
+    st.subheader("Agua requerida para esta etapa:")
+    st.info(f"💧 **Mide exactamente e ingresa a la olla:** {agua_macerado_manual:.1f} Litros")
+    st.write(f"Para esta cantidad de agua debes mezclar un total de **{grano_total_kg:.1f} kilos de grano**.")
     
     st.write("---")
-    st.subheader("Instrucciones para el fuego:")
-    st.write("- **Si usas olla de metal (Acero o Aluminio):** No dejes el fuego encendido todo el tiempo. Enciende la llama al mínimo solo 1 minuto cada 15 minutos para mantener el calor.")
-    st.write("- **Si usas una cava plástica:** Tapa bien el recipiente. El plástico aísla el calor por sí solo y no necesitas prender fuego en ningún momento de esta hora.")
+    st.subheader("Configuración del Equipo:")
+    # Regresa la selección del material de la olla
+    tipo_olla = st.selectbox("Selecciona el material de tu olla de maceración:", ["Acero Inoxidable", "Aluminio", "Cava plástica"])
+    
+    if tipo_olla == "Cava plástica":
+        st.success("✅ **Instrucción:** Tapa bien el recipiente. Al ser plástico, aísla el calor por sí solo y **no necesitas encender el fuego** en ningún momento de esta hora.")
+    else:
+        st.warning("⚠️ **Instrucción para olla de metal:** El metal pierde calor rápido por el frío de Bogotá. No dejes el fuego encendido continuo; aplica pulsos térmicos prendiendo la llama al mínimo solo 1 minuto cada 15 minutos.")
 
 with tab2:
     st.header("Etapa de Cocción y Control de Fuego")
     
-    # Imagen de la olla de cocción / ebullición
     st.image("https://images.unsplash.com/photo-1532635241-17e820aac095?w=500", 
              caption="Proceso de ebullición y control de energía en la olla", use_container_width=True)
     
-    with st.container(border=True):
-        st.subheader("Agua requerida para esta etapa:")
-        st.metric(label="Agua que debes usar para la lavada del grano:", value=f"{agua_lavado_manual:.1f} Litros")
-        st.write(f"Al juntar toda el agua filtrada en la olla antes de prender el quemador, debes tener exactamente **{vol_necesario_antes_hervir:.1f} Litros** de líquido.")
+    st.subheader("Agua requerida para esta etapa:")
+    st.info(f"💧 **Agua que debes usar para la lavada del grano:** {agua_lavado_manual:.1f} Litros")
+    st.write(f"Al juntar toda el agua filtrada en la olla antes de prender el quemador, debes tener exactamente **{vol_necesario_antes_hervir:.1f} Litros** de líquido.")
 
     st.write("---")
     st.subheader("Pauta del Sensor en Tiempo Real:")
-    st.write(f"Por la altura de la ciudad, tu mosto nunca va a pasar de los {temp_ebullicion} grados. No gastes gas de más intentando buscar que suba a 100 grados.")
+    st.write(f"Por la altura de la ciudad, tu mosto nunca va a pasar de los {temp_ebullicion} grados. Sigue la alerta de color según lo que marque tu termómetro:")
     
-    # Evaluación en vivo del sensor dentro de la pestaña de cocción
-    with st.container(border=True):
-        st.write(f"**Temperatura detectada por el sensor:** {temperatura_sensor} °C")
-        
-        if temperatura_sensor < temp_ebullicion:
-            st.info(" **Instrucción actual:** Sube el fuego al **Máximo (100% de potencia)**.")
-            st.write(f"Faltan {temp_ebullicion - temperatura_sensor:.1f} °C para que empiece a hervir.")
-        elif temperatura_sensor == temp_ebullicion:
-            st.success(" **¡Llegaste al punto de hervor!** Baja de inmediato el fuego al **Nivel Medio-Bajo (40% de potencia)**.")
-            st.write(f"Mantén este nivel bajito durante los {tiempo_hervor:.0f} minutos. Es calor suficiente para cocinar el mosto de forma eficiente.")
-        else:
-            st.error(" **¡Alerta de Desperdicio!** Te pasaste del punto de ebullición de Bogotá.")
-            st.write(f"Estás a {temperatura_sensor} °C. El mosto no va a calentarse más, solo estás perdiendo gas y evaporando agua en exceso. ¡Baja el fuego ya!")
+    # --- CORRECCIÓN DEL SENSOR (Lógica con rangos amplios y estables) ---
+    st.write(f"**Temperatura actual detectada:** {temperatura_sensor} °C")
+    
+    if temperatura_sensor < 92.0:
+        st.info(f"🔵 **Fase: CALENTAMIENTO INICIAL** \n**Acción:** Sube el fuego al **Máximo (100% de potencia)**. El gemelo digital estima que aún faltan {temp_ebullicion - temperatura_sensor:.1f} °C para que empiece a hervir.")
+    elif 92.0 <= temperatura_sensor <= 93.5:
+        st.success(f"🟢 **Fase: ¡HERVOR EFICIENTE ALCANZADO!** \n**Acción de Eco-Eficiencia:** ¡Baja de inmediato el fuego al **Nivel Medio-Bajo (40% de potencia)**! Este nivel bajito es calor suficiente para cocinar el mosto de forma óptima durante los {tiempo_hervor:.0f} minutos.")
+    else:
+        grados_exceso = temperatura_sensor - temp_ebullicion
+        st.error(f"🔴 **Fase: ¡ALERTA DE DESPERDICIO CRÍTICO!** \n**Acción:** Te pasaste por {grados_exceso:.1f} °C del punto de ebullición de Bogotá. El mosto no se va a calentar más; estás gastando gas innecesario y evaporando el agua de tu receta. **¡Baja el fuego de inmediato!**")
+
+    st.write(f"**Meta al apagar el quemador:** Deben quedarte exactamente **{vol_necesario_antes_enfriar:.1f} Litros** dentro de la olla.")
 
 with tab3:
     st.header("Etapa de Enfriamiento y Dinero Ahorrado")
     
-    # Imagen de flujo de agua limpia / enfriador
     st.image("https://images.unsplash.com/photo-1617155093730-a8bf47be792d?w=500", 
              caption="Recuperación del agua del intercambiador de calor", use_container_width=True)
     
-    with st.container(border=True):
-        st.subheader("Gasto de agua para enfriar:")
-        st.write(f"Para enfriar este lote de mosto, pasarán por tu enfriador un total de **{agua_enfriamiento_total:.1f} Litros** de agua limpia.")
-        st.info("Estrategia de reúso: Conecta la manguera de salida del enfriador a un tanque limpio. Toda esa agua saldrá caliente y limpia, perfecta para lavar tus ollas y pisos mañana sin gastar agua nueva de la llave.")
+    st.subheader("Gasto de agua para enfriar:")
+    st.warning(f"💧 **Agua total que pasará por el enfriador:** {agua_enfriamiento_total:.1f} Litros de agua limpia.")
+    st.success("💡 **Estrategia de reúso:** Conecta la manguera de salida del enfriador a un tanque limpio. Toda esa agua saldrá caliente y limpia, perfecta para lavar tus ollas y pisos mañana sin gastar agua nueva de la llave.")
 
     st.write("---")
-    st.subheader("Impacto y Beneficios de tu lote")
+    st.subheader("Impacto y Beneficios Totales de tu Lote")
     
     # Cálculos económicos y ambientales
     botellas_ahorradas = agua_enfriamiento_total / 0.5
@@ -117,13 +115,15 @@ with tab3:
     
     with col_eco1:
         with st.container(border=True):
-            st.write("**Impacto Ambiental:**")
-            st.write(f"- Salvaste el equivalente a: **{botellas_ahorradas:,.0f} botellas de agua** de la tienda.")
-            st.write(f"- Evitaste enviar a la atmósfera de Bogotá: **{co2_ahorrado_kg:.2f} kg de humo ($CO_2$)**.")
+            st.subheader("Sostenibilidad Ambiental")
+            st.metric(label="Agua Limpia Salvada", value=f"{agua_enfriamiento_total:.1f} L")
+            st.write(f"Equivale a **{botellas_ahorradas:,.0f} botellas de agua** de la tienda.")
+            st.metric(label="Reducción de Humo (CO2)", value=f"{co2_ahorrado_kg:.2f} kg")
+            st.write("Evitado en la atmósfera de Bogotá.")
         
     with col_eco2:
         with st.container(border=True):
-            st.write("**Dinero que dejas de pagar:**")
+            st.subheader("Viabilidad Económica")
             st.write(f"- Por no botar el agua: $ {dinero_agua_ahorrado:,.0f} COP")
             st.write(f"- Por bajar el fuego a tiempo: $ {dinero_gas_ahorrado:,.0f} COP")
             st.divider()
