@@ -71,4 +71,4 @@ with tab2:
 
     # 3. ANÁLISIS ENERGÉTICO DE LA ETAPA
     st.subheader("🔥 Análisis Energético y Sensor en Vivo: Cocción")
-    st.write(f"Por la altura de Bogotá, tu mosto nunca va a pasar de los {temp_ebullicion} °C. Monit
+    st.write("Por la altura de Bogotá, tu mosto nunca va a pasar de los {temp_ebullicion} °C. Monit
